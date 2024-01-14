@@ -2,8 +2,6 @@ import numpy as np
 import numpy.linalg
 from Solvers.Abstract_Solver import AbstractSolver, Statistics
 
-
-
 class PolicyIteration(AbstractSolver):
 
     def __init__(self, env, eval_env, options):
@@ -16,49 +14,14 @@ class PolicyIteration(AbstractSolver):
         self.policy = np.ones([env.observation_space.n, env.action_space.n]) / env.action_space.n
 
     def train_episode(self):
-        """
-            Run a single Policy iteration. Evaluate and improves the policy.
-
-            Use:
-                self.policy: [S, A] shaped matrix representing the policy.
-                self.env: OpenAI environment.
-                    env.P represents the transition probabilities of the environment.
-                    env.P[s][a] is a list of transition tuples (prob, next_state, reward, done).
-                    env.nS is a number of states in the environment.
-                    env.nA is a number of actions in the environment.
-                self.options.gamma: Gamma discount factor.
-                np.eye(self.env.action_space.n)[action]
-                
-                
-
-        """
-        
-
-        
-        
-
-
         self.policy_eval()
-        # Evaluate the current policy
         
-        # For each state...
-            # Find the best action by one-step lookahead
-            # Ties are resolved by returning the first action with maximum value (Hint: use max/argmax directly).
-
-            ################################
-            #   YOUR IMPLEMENTATION HERE   #
         for s in range(self.env.observation_space.n):
             bAction = self.one_step_lookahead(s)
             best = np.argmax(bAction)
 
             self.policy[s] = np.eye(self.env.action_space.n)[best]
-
-            ################################
             
-            
-            
-        # In DP methods we don't interact with the environment so we will set the reward to be the sum of state values
-        # and the number of steps to -1 representing an invalid value
 
         self.statistics[Statistics.Rewards.value] = np.sum(self.V)
         self.statistics[Statistics.Steps.value] = -1
@@ -67,16 +30,6 @@ class PolicyIteration(AbstractSolver):
         return "Policy Iteration"
 
     def one_step_lookahead(self, state):
-        """
-        Helper function to calculate the value for all action in a given state.
-
-        Args:
-            state: The state to consider (int)
-            V: The value to use as an estimator, Vector of length env.nS
-
-        Returns:
-            A vector of length env.nA containing the expected value of each action.
-        """
         A = np.zeros(self.env.action_space.n)
         for a in range(self.env.action_space.n):
             for prob, next_state, reward, done in self.env.P[state][a]:
@@ -84,21 +37,6 @@ class PolicyIteration(AbstractSolver):
         return A
 
     def policy_eval(self):
-        """
-        Evaluate a policy given an environment and a full description of the environment's dynamics.
-        Use a linear system solver sallied by numpy (np.linalg.solve)
-
-        Use:
-            self.policy: [S, A] shaped matrix representing the policy.
-            self.env: OpenAI env. env.P represents the transition probabilities of the environment.
-                env.P[s][a] is a list of transition tuples (prob, next_state, reward, done).
-                env.nS is a number of states in the environment.
-                env.nA is a number of actions in the environment.
-            self.options.gamma: Gamma discount factor.
-            np.linalg.solve(a, b) # Won't work with discount factor = 0!
-        """
-        ################################
-        #   YOUR IMPLEMENTATION HERE   #
         A=np.zeros((self.env.observation_space.n, self.env.observation_space.n))
         B=np.zeros(self.env.observation_space.n)
         
@@ -115,12 +53,6 @@ class PolicyIteration(AbstractSolver):
 
                          
     def create_greedy_policy(self):
-        
-        #Return the currently known policy.
-
-
-        #Returns:
-            #A function that takes an observation as input and greedy action as integer
         
         def policy_fn(state):
             return np.argmax(self.policy[state])
