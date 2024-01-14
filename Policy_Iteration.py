@@ -1,10 +1,3 @@
-# Licensing Information:  You are free to use or extend this codebase for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide the following
-# attribution:
-# This CSCE-689 RL assignment codebase was developed at Texas A&M University.
-# The core code base was developed by Guni Sharon (guni@tamu.edu).
-
 import numpy as np
 import numpy.linalg
 from Solvers.Abstract_Solver import AbstractSolver, Statistics
