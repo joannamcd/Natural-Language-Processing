@@ -16,53 +16,6 @@ class ValueIteration(AbstractSolver):
         #self.P = {}
 
     def train_episode(self):
-        """
-        Inputs: (Available/Useful variables)
-            self.env
-                this the OpenAI GYM environment
-                     see http://gym.openai.com/
-
-            state = self.env.reset():
-                Resets the environment and returns the starting state
-
-            self.env.nS:
-                number of states in the environment
-
-            self.env.nA:
-                number of actions in the environment
-
-            for probability, next_state, reward, done in self.P[state][action]:
-                `probability` will be probability of `next_state` actually being the next state
-                `reward` is the short-term/immediate reward for achieving that next state
-                `done` is a boolean of wether or not that next state is the last/terminal state
-
-                Every action has a chance (at least theoretically) of different outcomes (states)
-                Which is why `self.P[state][action]` is a list of outcomes and not a single outcome
-
-            self.options.gamma:
-                The discount factor (gamma from the slides)
-
-        Outputs: (what you need to update)
-            self.V:
-                This is a numpy array, but you can think of it as a dictionary
-                `self.V[state]` should return a floating point value that
-                represents the value of a state. This value should become
-                more accurate with each episode.
-
-                How should this be calculated?
-                    look at the value iteration algorithm
-                    Ref: Sutton book eq. 4.10.
-                Once those values have been updated, thats it for this function/class
-        """
-
-        # you can add variables here if it is helpful
-
-        
-        # Update the estimated value of each state
-        
-        # Update the value function. Ref: Sutton book eq. 4.10.
-            ################################
-            #   YOUR IMPLEMENTATION HERE   #
             
         for each_state in range(self.env.observation_space.n):
             # Do a one-step lookahead to find the best action
@@ -70,26 +23,7 @@ class ValueIteration(AbstractSolver):
             bestAction = np.max(bAction)
             
             self.V[each_state] = bestAction
-            
-            """""
-            #self.V[each_state] = bestAction
-            aVal = 0
-            for probability, next_state, reward, done in self.env.P[each_state][bestAction]:
-                aVal += probability * (reward + self.options.gamma * next_state)
-                #`probability` will be probability of `next_state` actually being the next state
-                #`reward` is the short-term/immediate reward for achieving that next state
-                #`done` is a boolean of wether or not that next state is the last/terminal state
-
-                #Every action has a chance (at least theoretically) of different outcomes (states)
-                #Which is why `self.P[state][action]` is a list of outcomes and not a single outcome
-                hello = "hello"
-                """""
-            #self.V[each_state] = aVal
-            
-            ################################
         
-
-        # Dont worry about this part
         self.statistics[Statistics.Rewards.value] = np.sum(self.V)
         self.statistics[Statistics.Steps.value] = -1
 
@@ -97,14 +31,6 @@ class ValueIteration(AbstractSolver):
         return "Value Iteration"
 
     def one_step_lookahead(self, state: int):
-        """
-        Helper function to calculate the value for all action in a given state.
-        Args:
-            state: The state to consider (int)
-            V: The value to use as an estimator, Vector of length env.nS
-        Returns:
-            A vector of length env.nA containing the expected value of each action.
-        """
         A = np.zeros(self.env.action_space.n)
         for a in range(self.env.action_space.n):
             for prob, next_state, reward, done in self.env.P[state][a]:
@@ -112,58 +38,11 @@ class ValueIteration(AbstractSolver):
         return A
 
     def create_greedy_policy(self):
-        """
-        Creates a greedy policy based on state values.
-        Use:
-            self.env.nA: Number of actions in the environment.
-        Returns:
-            A function that takes an observation as input and returns a Greedy
-               action
-        """
         
-
         def policy_fn(state):
-            """
-            What is this function?
-                This function is the part that decides what action to take
-
-            Inputs: (Available/Useful variables)
-                self.V[state]
-                    the estimated long-term value of getting to a state
-
-                values = self.one_step_lookahead(state)
-                    len(values) will be the number of actions (self.env.nA)
-                    values[action] will be the expected value of that action (float)
-
-                for probability, next_state, reward, done in self.P[state][action]:
-                    `probability` will be probability of `next_state` actually being the next state
-                    `reward` is the short-term/immediate reward for achieving that next state
-                    `done` is a boolean of wether or not that next state is the last/terminal state
-
-                    Every action has a chance (at least theosrtically) of different outcomes (states)
-                    Which is why `self.P[state][action]` is a list of outcomes and not a single outcome
-
-                self.env.nS:
-                    number of states in the environment
-
-                self.env.nA:
-                    number of actions in the environment
-
-                self.options.gamma:
-                    The discount factor (gamma from the slides)
-
-            Outputs: (what you need to output)
-                return action as an integer
-            """
-            
-            #vals = np.zeros(self.env.nA)
-            ################################
-            #   YOUR IMPLEMENTATION HERE   #s
             values = self.one_step_lookahead(state)
             #numA = len(values)
             chooseAction = np.argmax(values)
-
-            ################################
             return chooseAction
 
 
@@ -173,12 +52,9 @@ class ValueIteration(AbstractSolver):
 class AsynchVI(ValueIteration):
     def __init__(self, env, eval_env, options):
         super().__init__(env, eval_env, options)
-        # list of States to be updated by priority
         self.pq = PriorityQueue()
-        # A mapping from each state to all states potentially leading to it in a single step
         self.pred = {}
         for s in range(self.env.observation_space.n):
-            # Do a one-step lookahead to find the best action
             A = self.one_step_lookahead(s)
             best_action_value = np.max(A)
             self.pq.push(s, -abs(self.V[s] - best_action_value))
@@ -193,30 +69,7 @@ class AsynchVI(ValueIteration):
                             except KeyError:
                                 self.pred[next_state] = set()
 
-    def train_episode(self):
-        """
-        What is this?
-            same as other `train_episode` function above, but for Asynch value iteration
-
-        New Inputs:
-
-            self.pq.update(state, priority)
-                priority is a number BUT more-negative == higher priority
-
-            state = self.pq.pop()
-                this gets the state with the highest priority
-
-        Update:
-            self.V
-                this is still the same as the previous
-        """
-
-        #########################################################
-        # YOUR IMPLEMENTATION HERE      
-        # 
-        # 
-        # 
-        
+    def train_episode(self):    
         cState = self.pq.pop()
         OS_state = self.one_step_lookahead(cState)
         vS_state = np.max(OS_state)
@@ -225,19 +78,8 @@ class AsynchVI(ValueIteration):
         for pState in self.pred[cState]:
             OS_pState = self.one_step_lookahead(pState)
             vS_pState = np.max(OS_pState)
-            #diff = -abs(self.V[pState] - vS_pState)
             self.pq.update(pState, -abs(self.V[pState] - vS_pState))
-            
 
-        # Choose state with the maximal value change potential  #
-        # Do a one-step lookahead to find the best action       #
-        # Update the value function. Ref: Sutton book eq. 4.10. #
-        #########################################################
-
-        #Q(s,a) is one-step lookahead
-
-
-        # you can ignore this part
         self.statistics[Statistics.Rewards.value] = np.sum(self.V)
         self.statistics[Statistics.Steps.value] = -1
 
@@ -246,12 +88,6 @@ class AsynchVI(ValueIteration):
 
 
 class PriorityQueue:
-    """
-    Implements a priority queue data structure. Each inserted item
-    has a priority associated with it and the client is usually interested
-    in quick retrieval of the lowest-priority item in the queue. This
-    data structure allows O(1) access to the lowest-priority item.
-    """
 
     def __init__(self):
         self.heap = []
@@ -270,9 +106,6 @@ class PriorityQueue:
         return len(self.heap) == 0
 
     def update(self, item, priority):
-        # If item already in priority queue with higher priority, update its priority and rebuild the heap.
-        # If item already in priority queue with equal or lower priority, do nothing.
-        # If item not in priority queue, do the same thing as self.push.
         for index, (p, c, i) in enumerate(self.heap):
             if i == item:
                 if p <= priority:
