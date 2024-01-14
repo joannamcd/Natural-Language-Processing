@@ -1,5 +1,4 @@
 # Reinforcement Learning
-Course Programs
 
 ## Implementations of: 
 - Policy Iteration
